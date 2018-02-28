@@ -6,14 +6,19 @@ var body = document.getElementsByTagName("body")[0];
 
 var nbCanons = 3;
 var canonWidth = 80;
+var canonsCoords = [];
+var vitesseRotationCanons = 10;
 var espaceAvantCanon = 90;
+var espace = parseInt((ecran_height - espaceAvantCanon)/3)
 
 //creation de la balle
-var balle = create_element('balle', canonWidth, canonWidth, 0, 0);
+var balleWidth = 20;
+var balle = {elt:create_element('balle', balleWidth, balleWidth, 0, 0), x:0, y:0};
+var vitesseBalle = 1;
 
 var angleGlobal = 0;
 var score = 0;
-var eps = 1;
+var eps = 50;
 
 var canons = [];
 var score_contenair;
@@ -24,19 +29,22 @@ var animRotation;
 function main(){
 	var i = 0;
 	score_contenair = create_element('score', canonWidth, canonWidth, Fond.width/2 - 40, 15);
-	var espace = (ecran_height - espaceAvantCanon)/3;
+	espace = parseInt((ecran_height - espaceAvantCanon)/3), x = 0;//TODO rentre les coords flotantes
 
-	hide(balle);
+	//hide(balle);
 
 	for (var i = 0; i < nbCanons; i++) {
-		canons.push(create_element('canon', canonWidth, canonWidth, randint(0,Fond.width-80), espaceAvantCanon + i*espace));
-	}
+		x = randint(0,Fond.width - canonWidth);
+		canons.push(create_element('canon', canonWidth, canonWidth, x, espaceAvantCanon + i*espace));
+		canonsCoords.push([x, espaceAvantCanon + i*espace]);
 
-	animRotation = rotate(canons[nbCanons - 1], 1, 40);
+	}
+	console.log(canonsCoords);
+	animRotation = rotate(canons[nbCanons - 1], 1, vitesseRotationCanons);
 
 	Fond.addEventListener('click', function(){
 		//TODO
-		translateBalle(2,eps,10);
+		translateBalle(2,eps,vitesseBalle);
 	});
 	//translate(canon, getXY(canon), 0, 1, 10, 10);
 } 
@@ -73,6 +81,12 @@ function draw_canon(ctx, width, height){
 	ctx.fillStyle = "#FFFFFF";
 	ctx.fill();
 	ctx.fillRect(width/2-10, height/2-30, 20, 20);
+	ctx.beginPath();
+	ctx.arc(width/2, height/2, 1, 0, 2*Math.PI);
+	ctx.fillStyle = "#0000FF";
+	ctx.fill();
+	ctx.strokeStyle="red";
+	ctx.stroke();
 }
 
 function draw_balle(ctx, width, height){
@@ -80,9 +94,17 @@ function draw_balle(ctx, width, height){
 	ctx.arc(width/2, height/2, 10, 0, 2*Math.PI);
 	ctx.fillStyle = "#AACCDE";
 	ctx.fill();
+	ctx.beginPath();
+	ctx.arc(width/2, height/2, 1, 0, 2*Math.PI);
+	ctx.fillStyle = "#FF0000";
+	ctx.fill();
+	ctx.strokeStyle="red";
+	ctx.stroke();
 }
 
 function draw_score(ctx, width, height, score){
+	ctx.clearRect(0, 0, width, height);
+	ctx.beginPath;
 	ctx.textAlign = "center";
 	ctx.fillStyle = "#FFFFFF";
 	ctx.font="50px Arial";
@@ -105,7 +127,7 @@ function rotate(c, deltaAngle, vitesse){
 
 	}, vitesse);
 
-	return anim
+	return anim;
 }
 
 function translation(elt, direction, delta){
@@ -125,30 +147,40 @@ function translate(elt, init, direction, delta, limite, vitesse){
 	}, vitesse);
 }
 
+function translationBalle(direction, delta){
+	balle.x += delta*Math.sin(radian(direction));
+	balle.y -= delta*Math.cos(radian(direction));
+	positionne(balle.elt, balle.x, balle.y);
+}
+
 function translateBalle(delta, eps, vitesse){
-	var coordsInit = getXY(canons[nbCanons-1]);
+	var coordsInit = canonsCoords[nbCanons-1];
 	var animBalle;
 	var c;
-	var coordsCanons = [];
 	clearInterval(animRotation);
 	var angle = angleGlobal;
-	show(balle);
-	for (var i = 0; i < canons.length ; i++) {
-		c = getXY(canons[i]);
-		coordsCanons.push([c[0] + canonWidth/2, c[1] + canonWidth/2]);
-	}
+	var x  = 0;
 
-	positionne(balle, coordsInit[0], coordsInit[1]);
+
+	show(balle.elt);
+	coordsInit = [coordsInit[0] + (canonWidth/2 - balleWidth/2 ) , coordsInit[1] + (canonWidth/2 - balleWidth/2 ) ];
+
+	positionne(balle.elt, coordsInit[0], coordsInit[1]);
+	balle.x = coordsInit[0];
+	balle.y = coordsInit[1];
+
 	animBalle = setInterval(function(){
-		translation(balle, angle, delta);
-		coordsInit = getXY(balle);
-		if( coordsInit[0]<0 || coordsInit[0]>Fond.width || coordsInit[1]<0 || coordsInit[1]>Fond.height ){
+		translationBalle(angle, delta);
+		//coordsInit = getXY(balle);
+		//coordsInit = [coordsInit[0] + (canonWidth/2 - balleWidth/2 ) , coordsInit[1] + (canonWidth/2 - balleWidth/2 ) ];
+		//console.log([balle.x, balle.y]);
+		if( balle.x<0 || balle.x>Fond.width || balle.y<0 || balle.y>Fond.height ){
 			clearInterval(animBalle);
 		}
 		else{
 			for (var i = canons.length - 2; i >= 0; i--) {
-				if(distance(coordsCanons[i], [getXY(balle)[0]+canonWidth/2, getXY(balle)[1]+canonWidth/2])<eps){
-					hide(balle);
+				if(distance(canonsCoords[i], [balle.x+balleWidth/2, balle.y+balleWidth/2])<=eps){
+					//hide(balle);
 					clearInterval(animBalle);
 					if(i == 0){
 						score+=2;
@@ -159,6 +191,29 @@ function translateBalle(delta, eps, vitesse){
 						score+=1;
 						draw_score(score_contenair.getContext('2d'), score_contenair.width, score_contenair.height, score);
 					}
+					//scroller les canons
+					for (var j = i+1; j < canons.length; j++) {
+						remove(canons[j]); 
+					}
+
+					for (var j = i; j>=0; j--) {
+						translate(canons[j], getXY(canons[j]), 180, 2, (nbCanons-i-1)*espace, 10);
+						console.log(j + (nbCanons-i-1));
+						canons[j + (nbCanons-i-1)] = canons[j];
+						canonsCoords[j + (nbCanons-i-1)][0] = canonsCoords[j][0];
+					}
+
+					for (var j = 0; j <= i-1; j++) {
+						console.log(j);
+						x = randint(0, Fond.width);
+						canons[j] = create_element('canon', canonWidth, canonWidth, x, espaceAvantCanon + j*espace); 
+						canonsCoords[j][0] = x;
+					}
+
+					console.log(canonsCoords);
+
+					animRotation = rotate(canons[nbCanons-1]);
+
 					//TODO
 				}
 			}
@@ -168,7 +223,7 @@ function translateBalle(delta, eps, vitesse){
 }
 
 function getXY(elt){
-	return [getValue(elt.style.left), parseInt(elt.style.top)] ;
+	return [getValue(elt.style.left), getValue(elt.style.top)] ;
 }
 
 function redimensionne(elt, width , height){
@@ -196,7 +251,9 @@ function radian(degre){
 }
 
 function distance(a, b){
-	return Math.sqrt((a[0]-b[0])^2 + (a[1]-b[1])^2);
+	var dist = Math.sqrt(Math.pow(Math.abs(a[0]-b[0]), 2) + Math.pow(Math.abs(a[1]-b[1]), 2));
+	//console.log(dist);
+	return dist;
 }
 
 function getValue(text){
@@ -211,7 +268,7 @@ function getValue(text){
 		}
 	}
 
-	return parseInt(nbr);
+	return parseFloat(nbr);
 }
 
 function randint(min,max)
