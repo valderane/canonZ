@@ -159,7 +159,7 @@ function translateBalle(delta, eps, vitesse){
 	var c;
 	clearInterval(animRotation);
 	var angle = angleGlobal;
-	var x  = 0;
+	
 
 
 	show(balle.elt);
@@ -170,6 +170,8 @@ function translateBalle(delta, eps, vitesse){
 	balle.y = coordsInit[1];
 
 	animBalle = setInterval(function(){
+		var x  = 0;
+		var d = 0;
 		translationBalle(angle, delta);
 		//coordsInit = getXY(balle);
 		//coordsInit = [coordsInit[0] + (canonWidth/2 - balleWidth/2 ) , coordsInit[1] + (canonWidth/2 - balleWidth/2 ) ];
@@ -179,40 +181,79 @@ function translateBalle(delta, eps, vitesse){
 		}
 		else{
 			for (var i = canons.length - 2; i >= 0; i--) {
-				if(distance(canonsCoords[i], [balle.x+balleWidth/2, balle.y+balleWidth/2])<=eps){
+				d = distance([canonsCoords[i][0] + canonWidth/2, canonsCoords[i][1] + canonWidth/2], [balle.x+balleWidth/2, balle.y+balleWidth/2]);
+				console.log(d);
+				if(d<=eps){
 					//hide(balle);
 					clearInterval(animBalle);
 					if(i == 0){
 						score+=2;
 						draw_score(score_contenair.getContext('2d'), score_contenair.width, score_contenair.height, score);
 
+						for (var j = 1; j < canons.length; j++) {
+							remove(canons[j]); 
+						}
+						translate(canons[0], canonsCoords[0], 180, 2, 2*espace, 10);
+						canons[2] = canons[0];
+
+						canonsCoords[2][0] = canonsCoords[0][0];
+
+						for (var j = 0; j < nbCanons-1; j++) {
+							x = randint(0, Fond.width);
+							canons[j] = create_element('canon', canonWidth, canonWidth, x, espaceAvantCanon + j*espace); 
+							canonsCoords[j][0] = x;
+						}
 					}
 					else{
+						x = randint(0, Fond.width);
 						score+=1;
 						draw_score(score_contenair.getContext('2d'), score_contenair.width, score_contenair.height, score);
+
+						remove(canons[2]);
+
+						var a = canonsCoords[0], b = canonsCoords[1];
+
+						translate(canons[0], a, 180, 2, espace , 10);
+						translate(canons[1], b, 180, 2, espace, 10);
+
+						canons[2] = canons[1];
+						canons[1] = canons[0];
+
+						canonsCoords[2][0] = canonsCoords[1][0];
+						canonsCoords[1][0] = canonsCoords[0][0];
+						canons[0] = create_element('canon', canonWidth, canonWidth, x, espaceAvantCanon);
+						canonsCoords[0][0] = x;
+
+
 					}
+					/*
 					//scroller les canons
 					for (var j = i+1; j < canons.length; j++) {
 						remove(canons[j]); 
 					}
 
+					
+
 					for (var j = i; j>=0; j--) {
 						translate(canons[j], getXY(canons[j]), 180, 2, (nbCanons-i-1)*espace, 10);
 						console.log(j + (nbCanons-i-1));
 						canons[j + (nbCanons-i-1)] = canons[j];
+						console.log("canonCoords x before="+canonsCoords[nbCanons-i-1][0]);
 						canonsCoords[j + (nbCanons-i-1)][0] = canonsCoords[j][0];
+						console.log("canonCoords x after="+canonsCoords[nbCanons-i-1][0]);
 					}
 
-					for (var j = 0; j <= i-1; j++) {
+					for (var j = 0; j < nbCanons-i-1; j++) {
 						console.log(j);
 						x = randint(0, Fond.width);
+						console.log("x="+x);
 						canons[j] = create_element('canon', canonWidth, canonWidth, x, espaceAvantCanon + j*espace); 
 						canonsCoords[j][0] = x;
-					}
+					} */
 
 					console.log(canonsCoords);
 
-					animRotation = rotate(canons[nbCanons-1]);
+					animRotation = rotate(canons[nbCanons-1], 1 , vitesseRotationCanons);
 
 					//TODO
 				}
