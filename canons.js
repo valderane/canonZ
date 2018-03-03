@@ -208,6 +208,7 @@ function translateBalle(delta, eps, vitesse){
 		//console.log([balle.x, balle.y]);
 		if( balle.x<0 || balle.x>Fond.width || balle.y<0 || balle.y>Fond.height ){
 			clearInterval(animBalle);
+			gameOver();
 		}
 		else{
 			for (var i = canons.length - 2; i >= 0; i--) {
