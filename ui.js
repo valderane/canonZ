@@ -1,7 +1,11 @@
 var ecran_width = window.innerWidth;
 var ecran_height = window.innerHeight;
 
+
 function menu(){
+
+	init();
+
 	var logo, logo_meilleur_score, meilleur_score, play, options = [];
 	var play_width;
 
@@ -51,7 +55,103 @@ function gameOver(){
 	items.push(create_element('null', 50, 50, ecran_width/2 - 100, y_items));
 	items.push(create_element('null', 50, 50, ecran_width/2 - 25, y_items));
 	items.push(create_element('null', 50, 50, ecran_width/2 + 50, y_items));
+
+	//TODO 
 }
+
+
+function skinsMenu(){
+	resetStorage();
+	init();
+	var newSkin = document.getElementById('newSkin');
+	positionne(newSkin, ecran_height/4 + 25, ecran_width/2 - 50);
+
+	var bullets = parseInt(localStorage.bullets), skins = localStorage.skins.split(",").map(Number), skinSelected = 0;
+	var skinsContainers = [];
+	var unite = ecran_width/5;
+	var y0 = ecran_height/4 + 100, x0 = 0;
+	var x = x0, y = y0;
+	var j = 0, times = 0;
+
+	skins[0] = 1;
+
+	console.log(skins);
+
+	function clickSkin(indice){
+		if(skins[indice] == 1){
+			//on peut choisir le skin
+			skinSelected = indice+"";
+			localStorage.skinSelected = skinSelected;			
+		}
+
+	}
+
+	function newS(requiredBUllets){
+		var idispo = [], indice = 0;
+		for (var i = 0; i < skins.length; i++) {
+			if(skins[i]==0){idispo.push(i)}
+		}
+		/*var popup = create_element('null', ecran_height/2, ecran_width, 0, ecran_height/4);
+		var ballImage = create_element('null', ecran_height/4, ecran_height/4, 3*ecran_height/8, ecran_width/2 - ecran_height/4);
+		var anim = setInterval(fun)*/
+		if(bullets >= requiredBUllets){
+			indice = randint(0, idispo.length -1);
+			bullets -= requiredBUllets;
+			localStorage.bullets = ""+bullets;
+			skins[idispo[indice]] = 1;
+			localStorage.setItem('skins', skins);
+			drawSkin(indice);
+		}
+	}
+
+	function drawSkin(id){
+		if(skins[id] == 1){
+			draw_aleatoire(skinsContainers[id].getContext('2d'), unite, "#AACCEE");
+		}
+		else{
+			draw_aleatoire(skinsContainers[id].getContext('2d'), unite, "#FFFFFF");
+		}
+	
+	}
+
+	for (var i = 0; i < skins.length; i++) {
+		skinsContainers.push(create_element('null', unite, unite, x, y));
+
+
+		//affichage de l'image des balles
+		drawSkin(i); 
+
+		//varier la position
+		x += unite;
+		if(x-x0>4*unite){
+			x = x0;
+			y += unite;
+		}
+		j++;
+	}
+
+	newSkin.addEventListener('click', newS(50));
+	//TODO
+}
+
+
+
+function init(){
+	//charge toutes les variables d'environement du joueur, 
+	//ie skin, background et scoreMAx
+	//initialise le storage si pas encore initialisé
+	if(!localStorage.scoreMAx){
+		localStorage.setItem('scoreMAx', 0);
+		localStorage.setItem('skins', [0,0,0,0,0,0,0,0,0,0]);
+		localStorage.setItem('bg', [0,0,0,0,0,0,0,0,0,0]);
+		localStorage.setItem('skinSelected', 0);
+		localStorage.setItem('bgSelected', 0);
+	}
+	if(!localStorage.bullets){
+		localStorage.setItem('bullets', 100);
+	}
+}
+
 
 
 
@@ -100,6 +200,7 @@ function getHeight(elt){
 
 function create_element(nature, width, height, x, y){
 	//width and height should be > 50
+	var body = document.getElementsByTagName("body")[0];
 	var canvas = document.createElement('canvas');
 	canvas.width = width;
 	canvas.height = height;
@@ -122,3 +223,22 @@ function create_element(nature, width, height, x, y){
 	body.appendChild(canvas);
 	return canvas;
 }
+
+function draw_aleatoire(ctx, w, color){
+	ctx.beginPath();
+	ctx.arc(w/2, w/2, w/3, 0, 2*Math.PI);
+	ctx.fillStyle = color;
+	ctx.fill();
+}
+
+function randint(min,max)
+{
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+function resetStorage(){
+	localStorage.removeItem('bullets');
+	localStorage.removeItem('skins');
+	localStorage.removeItem('scoreMAx');
+}
+

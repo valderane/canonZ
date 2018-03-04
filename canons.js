@@ -8,26 +8,29 @@ var nbCanons = 3;
 var canonWidth = 80;
 var vitesseRotationCanons = 20;
 var espaceAvantCanon = 90;
-var espace = parseInt((ecran_height - espaceAvantCanon)/3)
+var espace = parseInt((ecran_height - espaceAvantCanon)/3);
 
-//creation de la balle
-var balleWidth = 20;
-var balle = {elt:create_element('balle', balleWidth, balleWidth, 0, 0), x:0, y:0};
-var vitesseBalle = 10;
 
 var angleGlobal = 0;
 var score = 0;
+var score_contenair;
 var eps = 30;
 
 var canons = [];
-var score_contenair;
 var animRotation = [];
 
 var once = false;
 
 var peutCliquer = true;
 
+var scoreMAx, skins, bg, skinSelected, bgSelected; 
 
+initVar();//recuperation des donnees
+
+//creation de la balle
+var balleWidth = 20;
+var balle = {elt:create_element('balle', balleWidth, balleWidth, 0, 0), x:0, y:0};
+var vitesseBalle = 5;
 
 function main(){
 	var i = 0;
@@ -101,7 +104,22 @@ function draw_canon(ctx, width, height){
 function draw_balle(ctx, width, height){
 	ctx.beginPath();
 	ctx.arc(width/2, height/2, 10, 0, 2*Math.PI);
-	ctx.fillStyle = "#AACCDE";
+	if(skinSelected == 0){
+		ctx.fillStyle = "#AACCDE";
+	}
+	else if(skinSelected == 1){
+		ctx.fillStyle = "#AA47DE";
+	}
+	else if(skinSelected == 2){
+		ctx.fillStyle = "#1447FC";
+	}
+	else if(skinSelected == 3){
+		ctx.fillStyle = "#05834DE";
+	}
+	else if(skinSelected == 4){
+		ctx.fillStyle = "#AC4520";
+	}
+	
 	ctx.fill();
 }
 
@@ -181,6 +199,7 @@ function translationBalle(direction, delta){
 	balle.x += delta*Math.sin(radian(direction));
 	balle.y -= delta*Math.cos(radian(direction));
 	positionne(balle.elt, balle.x, balle.y);
+	particules([balle.x  , balle.y], [20, 20], [0.2, 0.5], 2, 5, angleGlobal - 2, angleGlobal + 2, 2, draw_aleatoire, [5, 10] );
 }
 
 function translateBalle(delta, eps, vitesse){
@@ -208,7 +227,7 @@ function translateBalle(delta, eps, vitesse){
 		//console.log([balle.x, balle.y]);
 		if( balle.x<0 || balle.x>Fond.width || balle.y<0 || balle.y>Fond.height ){
 			clearInterval(animBalle);
-			gameOver();
+			gameOver(); // de ui.js
 		}
 		else{
 			for (var i = canons.length - 2; i >= 0; i--) {
@@ -349,6 +368,81 @@ function randint(min,max)
 
 function remove(elt){
 	body.removeChild(elt);
+}
+
+function initVar(){
+	//charge toutes les variables d'environement du joueur, 
+	//ie skin, background et scoreMAx
+	//initialise le storage si pas encore initialisé
+	scoreMAx = parseInt(localStorage.scoreMAx);
+	skins = localStorage.skins; // sous forme de texte "0,0,0,0..."
+	bg = localStorage.bg; // sous forme de texte "0,0,0,0..."
+	skinSelected = parseInt(localStorage.skinSelected); // sous forme de texte "0,0,0,0..."
+	bgSelected = parseInt(localStorage.bgSelected); // sous forme de texte "0,0,0,0..."
+}
+
+function sin(x){
+	return Math.sin(x);
+}
+
+function translationEffet(elt, direction, pos, delta, effet){
+	var x = pos[0], y = pos[1];
+	x = x  + effet(y) +delta*Math.sin(radian(direction));
+	y = y - delta*Math.cos(radian(direction));
+	positionne(elt, x, y);
+	return [x, y];
+}
+
+function translateParticule(elt, d, init, limite, dirmin, dirmax, ret, vitesse){
+	var positionActuelle = init;
+	var dir = randint(dirmin, dirmax);
+	var anim = setInterval(function(){
+		positionActuelle = translationEffet(elt, dir, positionActuelle, randint(d[0], [1]), sin);
+			if(distance(init, positionActuelle)>limite){
+				clearInterval(anim);
+				remove(elt);
+			}
+			if(ret!=0){
+				retrecir(elt, 2, 2, ret);
+			}
+
+	},vitesse);
+}
+
+function retrecir(elt, limW, limH, delta){
+	var width = elt.width-delta, height = elt.height-delta;
+	if(width>limW && height>limH){
+		redimensionne(elt, width, height);
+	}
+}
+
+function particules(init, t, d, n, limite, dirmin, dirmax, retrecir, style, v){
+	var width, positionActuelle = init;
+	var anims = [];
+	var particules = [];
+	for (var i = 0; i < n; i++) {
+		width = randint(t[0], t[1]);
+		particules.push(create_element('null', width, width, init[0], init[1]));
+		style(particules[i].getContext('2d'),width );
+	}
+
+	for (var i = 0; i < n; i++) {
+		translateParticule(particules[i], d, init, limite, dirmin, dirmax, retrecir ,randint(v[0], v[1]));
+	}
+	
+
+}
+
+function draw_aleatoire(ctx, w){
+	ctx.beginPath();
+	ctx.arc(w/2, w/2, w/2, 0, 2*Math.PI);
+	ctx.globalAlpha = Math.random();
+	ctx.fillStyle = randomColor();
+	ctx.fill();
+}
+
+function randomColor(){
+	return "rgb("+randint(0,255)+","+randint(0,255)+","+randint(0,255)+")";
 }
 
 main();
