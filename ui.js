@@ -95,10 +95,11 @@ function skinsMenu(){
 		var ballImage = create_element('null', ecran_height/4, ecran_height/4, 3*ecran_height/8, ecran_width/2 - ecran_height/4);
 		var anim = setInterval(fun)*/
 		if(bullets >= requiredBUllets){
-			indice = randint(0, idispo.length -1);
+			indice = idispo[randint(0, idispo.length - 1)];
+			console.log(indice)
 			bullets -= requiredBUllets;
 			localStorage.bullets = ""+bullets;
-			skins[idispo[indice]] = 1;
+			skins[indice] = 1;
 			localStorage.setItem('skins', skins);
 			drawSkin(indice);
 		}
@@ -130,7 +131,7 @@ function skinsMenu(){
 		j++;
 	}
 
-	newSkin.addEventListener('click', newS(50));
+	newSkin.addEventListener('click', function(){newS(50);});
 	//TODO
 }
 

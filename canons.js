@@ -199,7 +199,7 @@ function translationBalle(direction, delta){
 	balle.x += delta*Math.sin(radian(direction));
 	balle.y -= delta*Math.cos(radian(direction));
 	positionne(balle.elt, balle.x, balle.y);
-	particules([balle.x  , balle.y], [20, 20], [0.2, 0.5], 2, 5, angleGlobal - 2, angleGlobal + 2, 2, draw_aleatoire, [5, 10] );
+	//particules([balle.x  , balle.y], [20, 20], [0.5, 0.5], 1, 10, angleGlobal - 2, angleGlobal + 2, 5, draw_aleatoire, [5, 10] );
 }
 
 function translateBalle(delta, eps, vitesse){
