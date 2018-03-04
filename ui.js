@@ -1,25 +1,28 @@
 var ecran_width = window.innerWidth;
 var ecran_height = window.innerHeight;
-
+var dataVersion = 1;
 
 function menu(){
 
 	init();
 
-	var logo, logo_meilleur_score, meilleur_score, play, options = [];
+	var logo, logo_meilleur_score, meilleur_score, play, options = [], bg;
 	var play_width;
+	
+	bg = document.getElementById('bg');
+	redimensionne(bg, ecran_width, ecran_height);
 
-	logo = document.getElementById('logo');
+	var ms = parseInt(localStorage.scoreMAx) ;
+
+	//logo = document.getElementById('logo');
 	logo_meilleur_score = document.getElementById('logo_meilleur_score');
 	meilleur_score = document.getElementById('meilleur_score');
 	play = document.getElementById('play');
 	options.push(document.getElementById('sound_active_desactive'));
-	options.push(document.getElementById('like'));
-	options.push(document.getElementById('rate'));
 	options.push(document.getElementById('skins'));
 
 	//redimentionner
-	redimensionne(logo, ecran_width, ecran_height/4);
+	//redimensionne(logo, ecran_width, ecran_height/4);
 	redimensionne(logo_meilleur_score, 50, 50);
 	redimensionne(meilleur_score, 50, 50);
 
@@ -35,15 +38,17 @@ function menu(){
 	}
 
 	//positionne le logo
-	positionne(logo, ecran_width/2-getWidth(logo)/2, 0);
+	//positionne(logo, ecran_width/2-getWidth(logo)/2, 0);
 	positionne(play,ecran_width/2-getWidth(play)/2, ecran_height/2);
-	positionne(options[0], 20, ecran_height - 150);
-	positionne(options[1], ecran_width/2 - 50 - getWidth(options[2]) , ecran_height - 80);
-	positionne(options[2], ecran_width/2 + 50 , ecran_height - 80);
-	positionne(options[3], ecran_width - getWidth(options[3]) - 20, ecran_height - 150);
-	positionne(logo_meilleur_score, ecran_width/2 - getWidth(logo_meilleur_score) - 50, 3*ecran_height/8 - getHeight(logo_meilleur_score)/2);
-	positionne(meilleur_score, ecran_width/2 + getWidth(meilleur_score), 3*ecran_height/8 - getHeight(meilleur_score)/2);
-	//TODO  mettre du contenu
+	positionne(options[0], ecran_width/2 - 50 - options[0].width  , ecran_height - 150);
+	positionne(options[1], ecran_width/2 + 50, ecran_height - 150);
+	//positionne(options[2], ecran_width/2 + 50 , ecran_height - 80);
+	//positionne(options[3], ecran_width - getWidth(options[3]) - 20, ecran_height - 150);
+	positionne(logo_meilleur_score, ecran_width/2 - getWidth(logo_meilleur_score) - 5, 3*ecran_height/8 - getHeight(logo_meilleur_score)/2);
+	positionne(meilleur_score, ecran_width/2 + 5, 3*ecran_height/8 - getHeight(meilleur_score)/2);
+	
+	draw_score(meilleur_score.getContext('2d'), meilleur_score.width, meilleur_score.height, ms);
+	//TODO  gere
 	
 	
 }
@@ -56,12 +61,33 @@ function gameOver(){
 	items.push(create_element('null', 50, 50, ecran_width/2 - 25, y_items));
 	items.push(create_element('null', 50, 50, ecran_width/2 + 50, y_items));
 
+	var imgs = [new Image(), new Image(), new Image()];
+	imgs[0].src = "home.png";
+	imgs[1].src = "restart.png";
+	imgs[2].src = "piece.png";
+
+	imgs[2].onload = function(){
+		fillImage(items[0], imgs[0]);
+		fillImage(items[1], imgs[1]);
+		fillImage(items[2], imgs[2]);
+	}
+
+	imgs[0].onclick = function(){
+		location.href = "menu.html";
+	}
+	imgs[1].onclick = function(){
+		location.href = "canons.html";
+	}
+	imgs[2].onclick = function(){
+		location.href = "canons.html";
+	}
+
+
 	//TODO 
 }
 
 
 function skinsMenu(){
-	resetStorage();
 	init();
 	var newSkin = document.getElementById('newSkin');
 	positionne(newSkin, ecran_height/4 + 25, ecran_width/2 - 50);
@@ -141,6 +167,9 @@ function init(){
 	//charge toutes les variables d'environement du joueur, 
 	//ie skin, background et scoreMAx
 	//initialise le storage si pas encore initialisé
+	if(localStorage.dataVersion != dataVersion){
+		resetStorage();
+	}
 	if(!localStorage.scoreMAx){
 		localStorage.setItem('scoreMAx', 0);
 		localStorage.setItem('skins', [0,0,0,0,0,0,0,0,0,0]);
@@ -151,6 +180,10 @@ function init(){
 	if(!localStorage.bullets){
 		localStorage.setItem('bullets', 100);
 	}
+	if(!localStorage.dataVersion){
+		localStorage.setItem("dataVersion", dataVersion)
+	}
+	
 }
 
 
@@ -232,6 +265,15 @@ function draw_aleatoire(ctx, w, color){
 	ctx.fill();
 }
 
+function draw_score(ctx, width, height, score){
+	ctx.clearRect(0, 0, width, height);
+	ctx.beginPath;
+	ctx.textAlign = "center";
+	ctx.fillStyle = "#000000";
+	ctx.font="200px Arial";
+	ctx.fillText(""+score, width/2, height);
+}
+
 function randint(min,max)
 {
     return Math.floor(Math.random()*(max-min+1)+min);
@@ -241,5 +283,27 @@ function resetStorage(){
 	localStorage.removeItem('bullets');
 	localStorage.removeItem('skins');
 	localStorage.removeItem('scoreMAx');
+	localStorage.removeItem('dataVersion');
 }
 
+function setImage(elt, img){
+	elt.src = img;
+}
+
+
+function fillImage(elt, img ){
+	var ctx = elt.getContext('2d');
+	//ctx.clearRect(0, 0, elt.width, elt.height);
+	ctx.beginPath();
+	ctx.drawImage(img, 0, 0, elt.width, elt.height);
+}
+/*
+function setAnimation(container, img , nbFrames, speed){
+	var w = container.width, h = container.height;
+	var i; 
+	setInterval(function(){
+
+	}, vitesse)
+}
+
+*/
