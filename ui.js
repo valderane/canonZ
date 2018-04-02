@@ -72,13 +72,13 @@ function gameOver(){
 		fillImage(items[2], imgs[2]);
 	}
 
-	imgs[0].onclick = function(){
+	items[0].onclick = function(){
 		location.href = "menu.html";
 	}
-	imgs[1].onclick = function(){
+	items[1].onclick = function(){
 		location.href = "canons.html";
 	}
-	imgs[2].onclick = function(){
+	items[2].onclick = function(){
 		location.href = "canons.html";
 	}
 
